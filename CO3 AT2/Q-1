@@ -5,7 +5,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
-
 print("Name : Mahesh")
 print("Reg.No : 192425338")
 print("Customer Segmentation using K-Means + PCA")
