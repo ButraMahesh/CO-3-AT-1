@@ -1,0 +1,141 @@
+from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.factors.discrete import TabularCPD
+from pgmpy.inference import VariableElimination
+import networkx as nx
+import matplotlib.pyplot as plt
+
+print("Name: B Mahesh")
+print("Register Number: 192425338")
+print("\nFINANCIAL RISK PREDICTION USING BAYESIAN NETWORK\n")
+
+model = DiscreteBayesianNetwork([
+    ("Transaction_Data", "Financial_Risk"),
+    ("Financial_History", "Financial_Risk"),
+    ("Financial_Risk", "Loan_Default"),
+    ("Financial_Risk", "Credit_Score")
+])
+
+cpd_transaction = TabularCPD(
+    variable="Transaction_Data",
+    variable_card=2,
+    values=[[0.7], [0.3]]
+)
+
+cpd_history = TabularCPD(
+    variable="Financial_History",
+    variable_card=2,
+    values=[[0.8], [0.2]]
+)
+
+cpd_risk = TabularCPD(
+    variable="Financial_Risk",
+    variable_card=2,
+    values=[
+        [0.9, 0.6, 0.5, 0.1],
+        [0.1, 0.4, 0.5, 0.9]
+    ],
+    evidence=["Transaction_Data", "Financial_History"],
+    evidence_card=[2, 2]
+)
+
+cpd_default = TabularCPD(
+    variable="Loan_Default",
+    variable_card=2,
+    values=[
+        [0.95, 0.3],
+        [0.05, 0.7]
+    ],
+    evidence=["Financial_Risk"],
+    evidence_card=[2]
+)
+
+cpd_credit = TabularCPD(
+    variable="Credit_Score",
+    variable_card=2,
+    values=[
+        [0.9, 0.2],
+        [0.1, 0.8]
+    ],
+    evidence=["Financial_Risk"],
+    evidence_card=[2]
+)
+
+model.add_cpds(
+    cpd_transaction,
+    cpd_history,
+    cpd_risk,
+    cpd_default,
+    cpd_credit
+)
+
+print("Model Valid:", model.check_model())
+
+graph = nx.DiGraph()
+
+graph.add_edges_from([
+    ("Transaction_Data", "Financial_Risk"),
+    ("Financial_History", "Financial_Risk"),
+    ("Financial_Risk", "Loan_Default"),
+    ("Financial_Risk", "Credit_Score")
+])
+
+plt.figure(figsize=(10, 6))
+
+pos = {
+    "Transaction_Data": (0, 2),
+    "Financial_History": (0, 0),
+    "Financial_Risk": (2, 1),
+    "Loan_Default": (4, 2),
+    "Credit_Score": (4, 0)
+}
+
+nx.draw(
+    graph,
+    pos,
+    with_labels=True,
+    node_size=3500,
+    font_size=9,
+    arrows=True
+)
+
+plt.title("Bayesian Network for Financial Risk Prediction")
+plt.show()
+
+inference = VariableElimination(model)
+
+result = inference.query(
+    variables=["Financial_Risk"],
+    evidence={
+        "Transaction_Data": 1,
+        "Financial_History": 1
+    }
+)
+
+print("\nFinancial Risk Prediction:")
+print(result)
+
+probabilities = result.values
+
+print("\nProbability of Low Risk:", probabilities[0])
+print("Probability of High Risk:", probabilities[1])
+
+if probabilities[1] > probabilities[0]:
+    print("\nPrediction: HIGH FINANCIAL RISK")
+else:
+    print("\nPrediction: LOW FINANCIAL RISK")
+
+labels = ["Low Risk", "High Risk"]
+values = [probabilities[0], probabilities[1]]
+
+plt.figure(figsize=(8, 5))
+plt.bar(labels, values)
+
+plt.xlabel("Risk Category")
+plt.ylabel("Probability")
+plt.title("Financial Risk Prediction Probability")
+plt.ylim(0, 1)
+
+for i, value in enumerate(values):
+    plt.text(i, value + 0.02, f"{value:.2f}", ha="center")
+
+plt.show()
