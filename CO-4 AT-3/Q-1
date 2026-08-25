@@ -1,0 +1,146 @@
+from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.factors.discrete import TabularCPD
+from pgmpy.inference import VariableElimination
+import networkx as nx
+import matplotlib.pyplot as plt
+
+print("Name: B Mahesh")
+print("Register Number: 192425338")
+print("\nDISEASE DIAGNOSIS USING BAYESIAN NETWORK\n")
+
+model = DiscreteBayesianNetwork([
+    ("Medical_History", "Disease"),
+    ("Disease", "Fever"),
+    ("Disease", "Cough"),
+    ("Disease", "Fatigue")
+])
+
+cpd_history = TabularCPD(
+    variable="Medical_History",
+    variable_card=2,
+    values=[[0.7], [0.3]]
+)
+
+cpd_disease = TabularCPD(
+    variable="Disease",
+    variable_card=2,
+    values=[
+        [0.9, 0.4],
+        [0.1, 0.6]
+    ],
+    evidence=["Medical_History"],
+    evidence_card=[2]
+)
+
+cpd_fever = TabularCPD(
+    variable="Fever",
+    variable_card=2,
+    values=[
+        [0.8, 0.2],
+        [0.2, 0.8]
+    ],
+    evidence=["Disease"],
+    evidence_card=[2]
+)
+
+cpd_cough = TabularCPD(
+    variable="Cough",
+    variable_card=2,
+    values=[
+        [0.7, 0.3],
+        [0.3, 0.7]
+    ],
+    evidence=["Disease"],
+    evidence_card=[2]
+)
+
+cpd_fatigue = TabularCPD(
+    variable="Fatigue",
+    variable_card=2,
+    values=[
+        [0.6, 0.2],
+        [0.4, 0.8]
+    ],
+    evidence=["Disease"],
+    evidence_card=[2]
+)
+
+model.add_cpds(
+    cpd_history,
+    cpd_disease,
+    cpd_fever,
+    cpd_cough,
+    cpd_fatigue
+)
+
+print("Bayesian Network Valid:", model.check_model())
+
+plt.figure(figsize=(10, 6))
+
+graph = nx.DiGraph()
+graph.add_edges_from([
+    ("Medical_History", "Disease"),
+    ("Disease", "Fever"),
+    ("Disease", "Cough"),
+    ("Disease", "Fatigue")
+])
+
+pos = {
+    "Medical_History": (0, 2),
+    "Disease": (2, 2),
+    "Fever": (4, 3),
+    "Cough": (4, 2),
+    "Fatigue": (4, 1)
+}
+
+nx.draw(
+    graph,
+    pos,
+    with_labels=True,
+    node_size=3500,
+    font_size=10,
+    arrows=True
+)
+
+plt.title("Bayesian Network for Disease Diagnosis")
+plt.show()
+
+inference = VariableElimination(model)
+
+result = inference.query(
+    variables=["Disease"],
+    evidence={
+        "Medical_History": 1,
+        "Fever": 1,
+        "Cough": 1,
+        "Fatigue": 1
+    }
+)
+
+print("\nDisease Prediction:")
+print(result)
+
+probabilities = result.values
+
+print("\nProbability of No Disease:", probabilities[0])
+print("Probability of Disease:", probabilities[1])
+
+if probabilities[1] > probabilities[0]:
+    print("\nPrediction: DISEASE DETECTED")
+else:
+    print("\nPrediction: NO DISEASE DETECTED")
+
+labels = ["No Disease", "Disease"]
+values = [probabilities[0], probabilities[1]]
+
+plt.figure(figsize=(8, 5))
+plt.bar(labels, values)
+plt.xlabel("Disease Condition")
+plt.ylabel("Probability")
+plt.title("Disease Prediction Probability")
+plt.ylim(0, 1)
+
+for i, value in enumerate(values):
+    plt.text(i, value + 0.02, f"{value:.3f}", ha="center")
+
+plt.show()
