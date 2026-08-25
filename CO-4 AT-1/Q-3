@@ -1,0 +1,89 @@
+import sklearn_crfsuite
+from sklearn_crfsuite import metrics
+
+print("Name: B Mahesh")
+print("Register Number: 192425338")
+print("\nNAMED ENTITY RECOGNITION FOR CUSTOMER SUPPORT USING CRF\n")
+
+train_data = [
+    (
+        ["My", "name", "is", "Mahesh", "and", "I", "have", "an", "issue", "with", "Laptop", "order", "ORD123"],
+        ["O", "O", "O", "B-CUSTOMER", "O", "O", "O", "O", "B-ISSUE", "O", "B-PRODUCT", "O", "B-ORDER"]
+    ),
+    (
+        ["I", "am", "Ravi", "and", "my", "Mobile", "order", "ORD456", "is", "damaged"],
+        ["O", "O", "B-CUSTOMER", "O", "O", "B-PRODUCT", "O", "B-ORDER", "O", "B-ISSUE"]
+    ),
+    (
+        ["Customer", "Suresh", "reported", "a", "problem", "with", "Headphones", "order", "ORD789"],
+        ["O", "B-CUSTOMER", "O", "O", "B-ISSUE", "O", "B-PRODUCT", "O", "B-ORDER"]
+    )
+]
+
+def word_features(sentence, i):
+    word = sentence[i]
+
+    features = {
+        "word": word,
+        "lowercase": word.lower(),
+        "is_upper": word.isupper(),
+        "is_digit": word.isdigit(),
+        "prefix": word[:2],
+        "suffix": word[-2:]
+    }
+
+    if i > 0:
+        features["previous_word"] = sentence[i - 1].lower()
+    else:
+        features["BOS"] = True
+
+    if i < len(sentence) - 1:
+        features["next_word"] = sentence[i + 1].lower()
+    else:
+        features["EOS"] = True
+
+    return features
+
+def sentence_features(sentence):
+    return [word_features(sentence, i) for i in range(len(sentence))]
+
+X_train = [sentence_features(sentence) for sentence, labels in train_data]
+y_train = [labels for sentence, labels in train_data]
+
+model = sklearn_crfsuite.CRF(
+    algorithm="lbfgs",
+    max_iterations=100
+)
+
+model.fit(X_train, y_train)
+
+test_email = [
+    "My", "name", "is", "Kiran", "and", "my", "Laptop",
+    "order", "ORD999", "has", "a", "problem"
+]
+
+X_test = [sentence_features(test_email)]
+
+prediction = model.predict(X_test)
+
+print("Customer Support Email:\n")
+print(" ".join(test_email))
+
+print("\nPredicted Entities:\n")
+
+for word, label in zip(test_email, prediction[0]):
+    print(word, ":", label)
+
+train_prediction = model.predict(X_train)
+
+labels = list(model.classes_)
+
+print("\nModel Accuracy:")
+print(metrics.flat_accuracy_score(y_train, train_prediction))
+
+print("\nClassification Report:")
+print(metrics.flat_classification_report(
+    y_train,
+    train_prediction,
+    labels=labels
+))
