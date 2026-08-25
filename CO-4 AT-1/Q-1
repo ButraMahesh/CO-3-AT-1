@@ -1,0 +1,96 @@
+from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.factors.discrete import TabularCPD
+from pgmpy.inference import VariableElimination
+
+print("Name: B Mahesh")
+print("Register Number: 192425338")
+print("\nFRAUD DETECTION USING BAYESIAN NETWORKS\n")
+
+model = DiscreteBayesianNetwork([
+    ("Transaction_Amount", "Fraudulent"),
+    ("Transaction_Location", "Fraudulent"),
+    ("Login_Device", "Fraudulent"),
+    ("Previous_Fraud_History", "Fraudulent")
+])
+
+cpd_amount = TabularCPD(
+    variable="Transaction_Amount",
+    variable_card=2,
+    values=[[0.7], [0.3]]
+)
+
+cpd_location = TabularCPD(
+    variable="Transaction_Location",
+    variable_card=2,
+    values=[[0.8], [0.2]]
+)
+
+cpd_device = TabularCPD(
+    variable="Login_Device",
+    variable_card=2,
+    values=[[0.75], [0.25]]
+)
+
+cpd_history = TabularCPD(
+    variable="Previous_Fraud_History",
+    variable_card=2,
+    values=[[0.9], [0.1]]
+)
+
+cpd_fraud = TabularCPD(
+    variable="Fraudulent",
+    variable_card=2,
+    values=[
+        [0.99, 0.95, 0.90, 0.80,
+         0.95, 0.85, 0.75, 0.60,
+         0.90, 0.75, 0.65, 0.45,
+         0.70, 0.50, 0.40, 0.10],
+
+        [0.01, 0.05, 0.10, 0.20,
+         0.05, 0.15, 0.25, 0.40,
+         0.10, 0.25, 0.35, 0.55,
+         0.30, 0.50, 0.60, 0.90]
+    ],
+    evidence=[
+        "Transaction_Amount",
+        "Transaction_Location",
+        "Login_Device",
+        "Previous_Fraud_History"
+    ],
+    evidence_card=[2, 2, 2, 2]
+)
+
+model.add_cpds(
+    cpd_amount,
+    cpd_location,
+    cpd_device,
+    cpd_history,
+    cpd_fraud
+)
+
+print("Model Valid:", model.check_model())
+
+inference = VariableElimination(model)
+
+result = inference.query(
+    variables=["Fraudulent"],
+    evidence={
+        "Transaction_Amount": 1,
+        "Transaction_Location": 1,
+        "Login_Device": 1,
+        "Previous_Fraud_History": 1
+    }
+)
+
+print("\nPrediction Result:")
+print(result)
+
+probabilities = result.values
+
+print("\nProbability of Not Fraudulent:", probabilities[0])
+print("Probability of Fraudulent:", probabilities[1])
+
+if probabilities[1] > probabilities[0]:
+    print("\nPrediction: FRAUDULENT TRANSACTION")
+else:
+    print("\nPrediction: NOT FRAUDULENT TRANSACTION")
