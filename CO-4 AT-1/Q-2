@@ -1,0 +1,58 @@
+import numpy as np
+from hmmlearn import hmm
+
+print("Name: B Mahesh")
+print("Register Number: 192425338")
+print("\nPREDICTIVE MACHINE MAINTENANCE USING HIDDEN MARKOV MODEL\n")
+
+states = ["Healthy", "Warning", "Failure"]
+
+observations = ["Normal", "Moderate", "High"]
+
+model = hmm.CategoricalHMM(n_components=3)
+
+model.startprob_ = np.array([0.7, 0.2, 0.1])
+
+model.transmat_ = np.array([
+    [0.7, 0.25, 0.05],
+    [0.2, 0.6, 0.2],
+    [0.05, 0.25, 0.7]
+])
+
+model.emissionprob_ = np.array([
+    [0.8, 0.15, 0.05],
+    [0.2, 0.6, 0.2],
+    [0.05, 0.2, 0.75]
+])
+
+sensor_sequence = np.array([
+    [0],
+    [0],
+    [1],
+    [1],
+    [2]
+])
+
+log_probability, hidden_states = model.decode(
+    sensor_sequence,
+    algorithm="viterbi"
+)
+
+print("Sensor Observations:")
+
+for observation in sensor_sequence:
+    print(observations[observation[0]])
+
+print("\nPredicted Hidden States:")
+
+for state in hidden_states:
+    print(states[state])
+
+print("\nFinal Machine Condition:", states[hidden_states[-1]])
+
+if states[hidden_states[-1]] == "Healthy":
+    print("Maintenance Status: Machine is operating normally.")
+elif states[hidden_states[-1]] == "Warning":
+    print("Maintenance Status: Machine requires inspection.")
+else:
+    print("Maintenance Status: Immediate maintenance is required.")
