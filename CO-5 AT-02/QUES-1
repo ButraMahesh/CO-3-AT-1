@@ -1,0 +1,23 @@
+BEGIN
+
+    INPUT N
+
+    SET OnTimeCount ← 0
+
+    FOR i ← 1 TO N DO
+
+        TrafficCondition ← RANDOM()
+
+        DeliveryTime ← SimulateDelivery(TrafficCondition)
+
+        IF DeliveryTime ≤ ScheduledDeliveryTime THEN
+            OnTimeCount ← OnTimeCount + 1
+        END IF
+
+    END FOR
+
+    EstimatedProbability ← OnTimeCount / N
+
+    DISPLAY "Estimated Probability of On-Time Delivery: ", EstimatedProbability
+
+END
