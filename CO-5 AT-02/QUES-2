@@ -1,0 +1,38 @@
+BEGIN
+
+    INPUT K, N, ε
+
+    FOR i ← 1 TO K DO
+        RewardEstimate[i] ← 0
+        SelectionCount[i] ← 0
+    END FOR
+
+    FOR t ← 1 TO N DO
+
+        Generate a random number r between 0 and 1
+
+        IF r < ε THEN
+            SelectedMovie ← Random movie from 1 to K
+        ELSE
+            SelectedMovie ← Movie with maximum RewardEstimate
+        END IF
+
+        Recommend SelectedMovie
+
+        Receive Reward from user interaction
+
+        SelectionCount[SelectedMovie] ← 
+        SelectionCount[SelectedMovie] + 1
+
+        RewardEstimate[SelectedMovie] ←
+        RewardEstimate[SelectedMovie] +
+        (Reward - RewardEstimate[SelectedMovie]) /
+        SelectionCount[SelectedMovie]
+
+    END FOR
+
+    BestMovie ← Movie with maximum RewardEstimate
+
+    DISPLAY "Movie with Highest Expected Reward: ", BestMovie
+
+END
