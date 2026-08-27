@@ -1,0 +1,28 @@
+BEGIN
+
+    INPUT NumberOfEpisodes, LearningRate α, DiscountFactor γ
+
+    FOR EACH state s DO
+        Value[s] ← 0
+    END FOR
+
+    FOR Episode ← 1 TO NumberOfEpisodes DO
+
+        Initialize current state s
+
+        WHILE s is not a terminal state DO
+
+            Observe reward r and next state s'
+
+            Value[s] ← Value[s] + α ×
+            [r + γ × Value[s'] - Value[s]]
+
+            s ← s'
+
+        END WHILE
+
+    END FOR
+
+    DISPLAY "Final State-Value Estimates: ", Value
+
+END
