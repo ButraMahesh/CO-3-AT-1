@@ -1,0 +1,45 @@
+BEGIN
+
+    INPUT States S, Actions A, Rewards R, TransitionProbability P, DiscountFactor γ
+
+    FOR EACH state s IN S DO
+        Value[s] ← 0
+    END FOR
+
+    REPEAT
+
+        Delta ← 0
+
+        FOR EACH state s IN S DO
+
+            IF s is not a terminal state AND s is not an obstacle THEN
+
+                OldValue ← Value[s]
+
+                Value[s] ← MAX over all actions a of
+                Σ [P(s' | s, a) × (R(s, a, s') + γ × Value[s'])]
+
+                Delta ← MAX(Delta, |OldValue - Value[s]|)
+
+            END IF
+
+        END FOR
+
+    UNTIL Delta < θ
+
+    FOR EACH state s IN S DO
+
+        IF s is not a terminal state AND s is not an obstacle THEN
+
+            Policy[s] ← Action a that maximizes
+            Σ [P(s' | s, a) × (R(s, a, s') + γ × Value[s'])]
+
+        END IF
+
+    END FOR
+
+    DISPLAY "Optimal Value Function: ", Value
+
+    DISPLAY "Optimal Policy: ", Policy
+
+END
