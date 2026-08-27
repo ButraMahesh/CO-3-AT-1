@@ -1,0 +1,57 @@
+BEGIN
+
+    INPUT States S, Actions A, Rewards R,
+          TransitionProbability P,
+          DiscountFactor γ, Threshold θ
+
+    FOR EACH state s IN S DO
+        Policy[s] ← Random action from A
+        Value[s] ← 0
+    END FOR
+
+    REPEAT
+
+        REPEAT
+
+            Delta ← 0
+
+            FOR EACH state s IN S DO
+
+                IF s is not a terminal state THEN
+
+                    OldValue ← Value[s]
+
+                    a ← Policy[s]
+
+                    Value[s] ← Σ [P(s' | s, a) ×
+                    (R(s, a, s') + γ × Value[s'])]
+
+                    Delta ← MAX(Delta, |OldValue - Value[s]|)
+
+                END IF
+
+            END FOR
+
+        UNTIL Delta < θ
+
+        PolicyStable ← TRUE
+
+        FOR EACH state s IN S DO
+
+            OldAction ← Policy[s]
+
+            Policy[s] ← Action a that maximizes
+            Σ [P(s' | s, a) ×
+            (R(s, a, s') + γ × Value[s'])]
+
+            IF OldAction ≠ Policy[s] THEN
+                PolicyStable ← FALSE
+            END IF
+
+        END FOR
+
+    UNTIL PolicyStable = TRUE
+
+    DISPLAY "Optimal Policy: ", Policy
+
+END
